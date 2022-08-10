@@ -1,11 +1,6 @@
-from asyncio import tasks
 from datetime import datetime, timedelta
-from bs4 import BeautifulSoup
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-
-import requests
-import os
 
 default_args = {
     'owner': 'Freakisimo',
@@ -15,6 +10,10 @@ default_args = {
 
 
 def download_files(url, path, label, css_class=None):
+    from bs4 import BeautifulSoup
+    import requests
+    import os
+
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
     css_condition = {"class": css_class} if css_class else {}
