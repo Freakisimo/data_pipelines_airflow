@@ -1,3 +1,5 @@
 py_env
 logs
 dags/__pycache__
+dags/utils/__pycache__
+.vscode

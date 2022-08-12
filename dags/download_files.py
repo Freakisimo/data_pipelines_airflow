@@ -34,7 +34,7 @@ def download_files(url, path, label, css_class=None):
 
 with DAG(
     default_args=default_args,
-    dag_id='download_gtfs_files',
+    dag_id='download_data_cdmx_files',
     description='Download GTFS zip files from datos cdmx',
     start_date=datetime(2022, 8, 8),
     schedule_interval='@daily'
