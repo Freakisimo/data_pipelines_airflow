@@ -1,11 +1,15 @@
 from bs4 import BeautifulSoup
-from typing import List
 import requests
 import os
+import shutil
 import zipfile
 import boto3
+import pandas as pd
 
-def download_files(url: str, path: str, label: str, css_class=None) -> List[str]:
+def download_files(url: str, path: str, label: str, css_class: str=None) -> list:
+
+    if os.path.exists(path):
+        shutil.rmtree(path)
 
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
@@ -30,14 +34,14 @@ def download_files(url: str, path: str, label: str, css_class=None) -> List[str]
     return files    
 
 
-def unzip_files(files: list) -> List[str]:
+def unzip_files(files: list) -> list:
     local_files = []
     for f in files:
         if f.endswith('.zip'):
             f_path = os.path.dirname(f)
             target_path = f"{f_path}/"
             with zipfile.ZipFile(f,"r") as zip_ref:
-                zip_files = [f"{target_path}{f}" for f in zip_ref.namelist()]
+                zip_files = [f"{target_path}{zf}" for zf in zip_ref.namelist()]
                 zip_ref.extractall(target_path)
 
             files.remove(f)
@@ -46,14 +50,41 @@ def unzip_files(files: list) -> List[str]:
                 os.remove(f)
             
             local_files += zip_files
-            
+        
+    local_files += files
+
+    local_files = [lf for lf in local_files if os.path.isfile(lf)]
+
     return local_files
 
 
-def upload_s3_files(files: list, bucket: str) -> None:
+def xlsx_to_csv(files: list) -> list:
+    local_files = []
+    for f in files:
+        if f.endswith('.xlsx') or f.endswith('.xls'):
+            path = os.path.splitext(f)[0]
+            read_file = pd.read_excel(f)
+            read_file.to_csv (f'{path}.csv', index=None, header=True)
+
+            files.remove(f)
+
+            if os.path.exists(f):
+                os.remove(f)
+
+            local_files.append(f'{path}.csv')
+
+    local_files += files
+
+    return local_files 
+    
+
+
+
+def upload_s3_files(files: list, start_path: str, bucket: str, prefix: str='') -> None:
     s3_client = boto3.client('s3')
     for f in files:
-        object_name = os.path.basename(f)
+        r_path = os.path.relpath(f, start_path)
+        object_name = f"{prefix}{r_path}"
         try:
             s3_client.upload_file(f, bucket, object_name)
         except Exception as e:

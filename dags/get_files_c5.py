@@ -1,7 +1,8 @@
 from airflow.decorators import dag, task
 from datetime import datetime, timedelta
 
-from utils.python_tools import download_files, unzip_files, upload_s3_files
+from utils.python_tools import download_files, unzip_files, \
+    upload_s3_files, xlsx_to_csv
 
 default_args = {
     'owner': 'Freakisimo',
@@ -10,9 +11,9 @@ default_args = {
 }
 
 @dag(
-    dag_id='get_gtfs_data',
+    dag_id='get_files_c5',
     default_args=default_args,
-    start_date=datetime(2022,8,9),
+    start_date=datetime(2022,8,14),
     schedule_interval='@daily'
 )
 def etl_data_gtfs():
@@ -20,23 +21,27 @@ def etl_data_gtfs():
     @task()
     def extract():
         return download_files(
-            url='https://datos.cdmx.gob.mx/dataset/gtfs',
-            path='/tmp/gtfs/',
+            url='https://datos.cdmx.gob.mx/dataset/incidentes-viales-c5',
+            path='/tmp/c5/',
             label='a',
             css_class='resource-url-analytics'
         )
     
-    @task
+    @task()
     def transform(files):
-        return unzip_files(
+        files = unzip_files(
+            files=files
+        )
+        return xlsx_to_csv(
             files=files
         )
         
 
-    @task
+    @task()
     def load(local_files):
         upload_s3_files(
             files=local_files,
+            start_path='/tmp/',
             bucket='datos-cdmx'
         )
 

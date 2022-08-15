@@ -1,0 +1,5 @@
+Faker
+numpy 
+boto3 
+botocore 
+openpyxl
