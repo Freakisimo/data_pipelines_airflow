@@ -13,10 +13,10 @@ default_args = {
 @dag(
     dag_id='get_files_c5',
     default_args=default_args,
-    start_date=datetime(2022,8,14),
+    start_date=datetime(2022,8,15),
     schedule_interval='@daily'
 )
-def etl_data_gtfs():
+def etl_data_cdmx():
 
     @task()
     def extract():
@@ -50,4 +50,4 @@ def etl_data_gtfs():
     local_files = transform(files)
     load(local_files)
 
-gtfs_dag = etl_data_gtfs()
+gtfs_dag = etl_data_cdmx()

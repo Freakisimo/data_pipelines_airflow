@@ -1,3 +1,4 @@
+from threading import local
 from bs4 import BeautifulSoup
 import requests
 import os
@@ -5,6 +6,13 @@ import shutil
 import zipfile
 import boto3
 import pandas as pd
+
+
+def safe_path(path: str) -> str:
+    to_lower = path.lower()
+    spaces = to_lower.replace(" ", "_")
+    return spaces
+
 
 def download_files(url: str, path: str, label: str, css_class: str=None) -> list:
 
@@ -23,7 +31,7 @@ def download_files(url: str, path: str, label: str, css_class: str=None) -> list
     for link in links:
         file = requests.get(link, stream = True)
         file_name = link.rsplit('/', 1)[-1]
-        file_path = f"{path}{file_name}"
+        file_path = safe_path(f"{path}{file_name}")
         with open(file_path,"wb") as shp:
             for chunk in file.iter_content(chunk_size=1024):  
                 if chunk:
@@ -54,6 +62,15 @@ def unzip_files(files: list) -> list:
     local_files += files
 
     local_files = [lf for lf in local_files if os.path.isfile(lf)]
+    local_files = [lf for lf in local_files if '__MACOSX' not in lf]
+
+    for idx,lf in enumerate(local_files, start=0):
+        lf_safe = safe_path(lf)
+        dir_path = os.path.dirname(lf_safe)
+        if not os.path.exists(dir_path):
+            os.mkdir(dir_path)
+        os.rename(lf, lf_safe)
+        local_files[idx] = lf_safe
 
     return local_files
 
@@ -78,8 +95,6 @@ def xlsx_to_csv(files: list) -> list:
     return local_files 
     
 
-
-
 def upload_s3_files(files: list, start_path: str, bucket: str, prefix: str='') -> None:
     s3_client = boto3.client('s3')
     for f in files:
@@ -89,3 +104,4 @@ def upload_s3_files(files: list, start_path: str, bucket: str, prefix: str='') -
             s3_client.upload_file(f, bucket, object_name)
         except Exception as e:
             print(e)
+

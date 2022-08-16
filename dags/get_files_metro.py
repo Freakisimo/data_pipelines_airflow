@@ -1,7 +1,8 @@
 from airflow.decorators import dag, task
 from datetime import datetime, timedelta
 
-from utils.python_tools import download_files, unzip_files, upload_s3_files
+from utils.python_tools import download_files, unzip_files, \
+    upload_s3_files, xlsx_to_csv
 
 default_args = {
     'owner': 'Freakisimo',
@@ -10,7 +11,7 @@ default_args = {
 }
 
 @dag(
-    dag_id='get_files_gtfs',
+    dag_id='get_files_metro',
     default_args=default_args,
     start_date=datetime(2022,8,15),
     schedule_interval='@daily'
@@ -20,15 +21,15 @@ def etl_data_cdmx():
     @task()
     def extract():
         return download_files(
-            url='https://datos.cdmx.gob.mx/dataset/gtfs',
-            path='/tmp/gtfs/',
+            url='https://datos.cdmx.gob.mx/dataset/ingresos-del-sistema-de-transporte-colectivo-metro',
+            path='/tmp/metro/',
             label='a',
             css_class='resource-url-analytics'
         )
     
     @task()
     def transform(files):
-        return unzip_files(
+        return xlsx_to_csv(
             files=files
         )
         
