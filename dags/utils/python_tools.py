@@ -1,7 +1,7 @@
-from threading import local
 from bs4 import BeautifulSoup
 import requests
 import os
+import re
 import shutil
 import zipfile
 import boto3
@@ -14,15 +14,23 @@ def safe_path(path: str) -> str:
     return spaces
 
 
-def download_files(url: str, path: str, label: str, css_class: str=None) -> list:
+def download_files(
+    url: str, 
+    path: str, 
+    label: str, 
+    css_class: str=None, 
+    innertext: str=None
+) -> list:
+
 
     if os.path.exists(path):
         shutil.rmtree(path)
 
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
-    css_condition = {"class": css_class} if css_class else {}
-    links = [a['href'] for a in soup.find_all(label, css_condition)]
+    css_condition = {"class": re.compile(f'.*{css_class}*.')} if css_class else {}
+    text_condition = re.compile(f'.*{innertext}*.')
+    links = [a['href'] for a in soup.find_all(label, css_condition, text=text_condition)]
 
     if not os.path.exists(path):
         os.mkdir(path)
