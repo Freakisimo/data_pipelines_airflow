@@ -13,8 +13,8 @@ default_args = {
 @dag(
     dag_id='get_files_accidentes_peatones',
     default_args=default_args,
-    start_date=datetime(2022,9,27),
-    schedule_interval='@daily'
+    start_date=datetime(2022,9,1),
+    schedule_interval='@monthly'
 )
 def etl_data_cdmx():
 

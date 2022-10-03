@@ -12,8 +12,8 @@ default_args = {
 @dag(
     dag_id='process_pedestrian_accidents_data',
     default_args=default_args,
-    start_date=datetime(2022,10,2),
-    schedule_interval='@daily'
+    start_date=datetime(2022,9,1),
+    schedule_interval='@monthly'
 )
 def process_gtfs_data():
 
