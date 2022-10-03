@@ -1,13 +1,17 @@
+from fiona.session import AWSSession
+
 import pandas as pd
 import geopandas as gpd
 import boto3
 import io
+import fiona
 
 class DataFrameS3File:
 
     def __init__(self) -> None:
         self.s3_resource = boto3.resource('s3')
         self.s3_client = boto3.client('s3')
+        self.session = boto3.Session()
         super().__init__()
     
 
@@ -17,7 +21,6 @@ class DataFrameS3File:
                 if name in obj.key]
 
         if keys:
-            # return f's3://{bucket}/{keys[0]}'
             return keys[0]
 
         return None
@@ -26,12 +29,12 @@ class DataFrameS3File:
     def get_df(self, bucket: str, name: str, prefix: str="") -> pd.DataFrame:
         key = self.get_full_key(bucket, name, prefix)
         obj = self.s3_client.get_object(Bucket=bucket, Key=key)
-        return pd.read_csv(io.BytesIO(obj['Body'].read()))
+        return pd.read_csv(io.BytesIO(obj['Body'].read()), engine='python', error_bad_lines=False)
     
 
     def get_gpd(self, bucket: str, name: str, prefix: str="") -> gpd.GeoDataFrame:
         key = self.get_full_key(bucket, name, prefix)
-        obj = self.s3_client.get_object(Bucket=bucket, Key=key)
-        return gpd.read_file(io.BytesIO(obj['Body'].read()))
+        with fiona.Env(session=AWSSession(boto3.Session())):
+            return gpd.read_file(f's3://{bucket}/{key}')
 
     

@@ -12,7 +12,7 @@ default_args = {
 @dag(
     dag_id='get_files_gtfs',
     default_args=default_args,
-    start_date=datetime(2022,8,28),
+    start_date=datetime(2022,9,27),
     schedule_interval='@daily'
 )
 def etl_data_cdmx():

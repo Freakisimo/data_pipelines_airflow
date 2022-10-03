@@ -23,9 +23,6 @@ def process_gtfs_data():
 
     @task
     def process_data():
-        # dfs = {name: dfs3f.get_df(bucket, name) for name in csv_files}
-        # for df in dfs.values():
-        #     print(df.head())
         agency_df = dfs3f.get_df(bucket, 'agency')
         shapes_df = dfs3f.get_df(bucket, 'shapes')
         routes_df = dfs3f.get_df(bucket, 'routes')
