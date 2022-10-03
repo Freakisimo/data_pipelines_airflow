@@ -1,8 +1,5 @@
 py_env
 logs
-dags/__pycache__
-dags/utils/__pycache__
 .vscode
 **/*.pyc
-!**/__pycache__/
-**/__pycache__
+**/*__pycache__
